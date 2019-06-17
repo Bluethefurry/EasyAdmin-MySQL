@@ -1,9 +1,13 @@
 local dbReady = false
-local tableQuery = "CREATE TABLE IF NOT EXISTS `ea_bans`( `banid` int(11) NOT NULL UNIQUE AUTO_INCREMENT, `expire` double NOT NULL DEFAULT '10444633200', `identifier` text NOT NULL, `steam` text NOT NULL, `reason` text NOT NULL, `discord` text NOT NULL, PRIMARY KEY(`banid`)) "
+local tableQuery = "CREATE TABLE IF NOT EXISTS `ea_bans`( `banid` int(11) NOT NULL UNIQUE AUTO_INCREMENT, `expire` double NOT NULL DEFAULT '10444633200', `identifiers` text NOT NULL, `reason` text NOT NULL, PRIMARY KEY(`banid`)) "
 
 updateScripts = {
 	"ALTER TABLE `ea_bans` ADD COLUMN `discord` text NOT NULL",
+	"ALTER TABLE `ea_bans` DROP COLUMN `discord`, DROP `steam`, DROP `identifier`, ADD COLUMN `identifiers` text NOT NULL"
 }
+
+
+local cachedBans = {} -- DO NOT TOUCH
 
 AddEventHandler('onMySQLReady', function ()
 	MySQL.Async.execute(tableQuery, {}, function() end)
@@ -16,6 +20,41 @@ AddEventHandler('onMySQLReady', function ()
 			print("Performed ea_bans Database Upgrade, no further action is necesarry.")
 		end
 	end)
+
+	MySQL.Async.execute("SELECT count(*) FROM information_schema.COLUMNS WHERE COLUMN_NAME = 'identifiers' and TABLE_NAME = 'ea_bans'", {}, function(count)
+		if count == 0 then
+			Citizen.Trace("Performin Database Upgrade...")
+			local fetchedAllBans = false
+			MySQL.Async.fetchAll('SELECT * FROM ea_bans', {}, function(bans)
+				callback(bans)
+				cachedBans = bans
+				fetchedAllBans = true
+				print("retrieved banlist")
+			end)
+			repeat
+				Wait(500)
+			until fetchedAllBans
+			MySQL.Async.execute(updateScripts[2], {}, function() end)
+			for i, ban in ipairs(cachedBans) do
+				ban.identifiers = {}
+				if ban.identifier then
+					table.insert(ban.identifiers, ban.identifier)
+					ban.identifier = nil
+				end
+				if ban.steam then
+					table.insert(ban.identifiers, ban.steam)
+					ban.steam = nil
+				end
+				if ban.discord then
+					table.insert(ban.identifiers, ban.discord)
+					ban.discord = nil
+				end
+				TriggerEvent("ea_data:addBan", ban)
+			end
+			print("Performed ea_bans Database Upgrade, no further action is necesarry.")
+		end
+	end)
+	
 	
 	Wait(100)
 	dbReady = true
@@ -28,6 +67,7 @@ AddEventHandler('ea_data:retrieveBanlist', function(callback)
 	end
 	MySQL.Async.fetchAll('SELECT * FROM ea_bans', {}, function(bans)
 		callback(bans)
+		cachedBans = bans
 		print("retrieved banlist")
 	end)
 end)
@@ -44,6 +84,14 @@ AddEventHandler('ea_data:removeBan', function(data)
 	while not dbReady do
 		Wait(1000)
 	end
-	MySQL.Async.execute("DELETE FROM ea_bans WHERE identifier = @identifier AND steam = @steam;", {identifier = data.identifier, steam = data.steam }, function() end)
-	print("deleted old ban")
+	for i,theBan in ipairs(cachedBans) do
+		for index,identifier in ipairs(theBan.identifiers) do
+			for d, dataidentifier in ipairs(data.identifiers) do
+				if dataidentifier == identifier then
+					MySQL.Async.execute("DELETE FROM ea_bans WHERE banid = @banid;", {banid = theBan.banid }, function() end)
+					print("deleted ban")
+					break
+				end
+		end
+	end
 end)
