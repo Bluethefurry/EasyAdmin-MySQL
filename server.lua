@@ -65,7 +65,9 @@ AddEventHandler('ea_data:retrieveBanlist', function(callback)
 		Wait(1000)
 	end
 	MySQL.Async.fetchAll('SELECT * FROM ea_bans', {}, function(bans)
-		bans.identifiers = json.decode(bans.identifiers)
+		for i, ban in ipairs(bans) do
+			ban.identifiers = json.decode(ban.identifiers)
+		end
 		callback(bans)
 		cachedBans = bans
 		print("retrieved banlist")
