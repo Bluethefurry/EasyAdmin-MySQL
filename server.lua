@@ -27,7 +27,6 @@ AddEventHandler('onMySQLReady', function ()
 			local fetchedAllBans = false
 			MySQL.Async.fetchAll('SELECT * FROM ea_bans', {}, function(bans)
 				bans.identifiers = json.decode(bans.identifiers)
-				callback(bans)
 				cachedBans = bans
 				fetchedAllBans = true
 				print("retrieved banlist")
