@@ -3,7 +3,7 @@ local tableQuery = "CREATE TABLE IF NOT EXISTS `ea_bans`( `banid` int(11) NOT NU
 
 updateScripts = {
 	"ALTER TABLE `ea_bans` ADD COLUMN `discord` text NOT NULL",
-	"ALTER TABLE `ea_bans` DROP COLUMN `discord`, DROP `steam`, DROP `identifier`, ADD COLUMN `identifiers` text NOT NULL"
+	"Truncate table `ea_bans`; ALTER TABLE `ea_bans` DROP COLUMN `discord`, DROP `steam`, DROP `identifier`, ADD COLUMN `identifiers` text NOT NULL"
 }
 
 
@@ -26,6 +26,7 @@ AddEventHandler('onMySQLReady', function ()
 			Citizen.Trace("Performin Database Upgrade...")
 			local fetchedAllBans = false
 			MySQL.Async.fetchAll('SELECT * FROM ea_bans', {}, function(bans)
+				bans.identifiers = json.decode(bans.identifiers)
 				callback(bans)
 				cachedBans = bans
 				fetchedAllBans = true
@@ -66,6 +67,7 @@ AddEventHandler('ea_data:retrieveBanlist', function(callback)
 		Wait(1000)
 	end
 	MySQL.Async.fetchAll('SELECT * FROM ea_bans', {}, function(bans)
+		bans.identifiers = json.decode(bans.identifiers)
 		callback(bans)
 		cachedBans = bans
 		print("retrieved banlist")
@@ -76,7 +78,7 @@ AddEventHandler('ea_data:addBan', function(data)
 	while not dbReady do
 		Wait(1000)
 	end
-	MySQL.Async.execute("INSERT INTO ea_bans (`banid`, `expire`, `identifiers`, `reason`) VALUES (NULL, @expire, @identifiers, @reason);", {expire = data.expire, identifiers = data.identifiers, reason = data.reason }, function() end)
+	MySQL.Async.execute("INSERT INTO ea_bans (`banid`, `expire`, `identifiers`, `reason`) VALUES (NULL, @expire, @identifiers, @reason);", {expire = data.expire, identifiers = json.encode(data.identifiers), reason = data.reason }, function() end)
 	print("added new ban")
 end)
 
