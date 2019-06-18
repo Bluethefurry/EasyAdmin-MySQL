@@ -92,6 +92,7 @@ AddEventHandler('ea_data:removeBan', function(data)
 					print("deleted ban")
 					break
 				end
+			end
 		end
 	end
 end)
