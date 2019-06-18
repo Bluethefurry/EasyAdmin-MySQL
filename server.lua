@@ -26,7 +26,6 @@ AddEventHandler('onMySQLReady', function ()
 			Citizen.Trace("Performin Database Upgrade...")
 			local fetchedAllBans = false
 			MySQL.Async.fetchAll('SELECT * FROM ea_bans', {}, function(bans)
-				bans.identifiers = json.decode(bans.identifiers)
 				cachedBans = bans
 				fetchedAllBans = true
 				print("retrieved banlist")
