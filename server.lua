@@ -11,7 +11,7 @@ local cachedBans = {} -- DO NOT TOUCH
 
 AddEventHandler('onMySQLReady', function ()
 	MySQL.Async.execute(tableQuery, {}, function() end)
-	print("executed table query")
+	Citizen.Trace("executed table query")
 
 	-- perform upgrades if necesarry
 
@@ -22,7 +22,7 @@ AddEventHandler('onMySQLReady', function ()
 			MySQL.Async.fetchAll('SELECT * FROM ea_bans', {}, function(bans)
 				cachedBans = bans
 				fetchedAllBans = true
-				print("retrieved banlist")
+				Citizen.Trace("retrieved banlist")
 			end)
 			repeat
 				Wait(500)
@@ -44,7 +44,7 @@ AddEventHandler('onMySQLReady', function ()
 				end
 				TriggerEvent("ea_data:addBan", ban)
 			end
-			print("Performed ea_bans Database Upgrade, no further action is necesarry.")
+			Citizen.Trace("Performed ea_bans Database Upgrade, no further action is necesarry.")
 		end
 	end)
 	
@@ -64,7 +64,7 @@ AddEventHandler('ea_data:retrieveBanlist', function(callback)
 		end
 		callback(bans)
 		cachedBans = bans
-		print("retrieved banlist")
+		Citizen.Trace("retrieved banlist")
 	end)
 end)
 
@@ -73,7 +73,7 @@ AddEventHandler('ea_data:addBan', function(data)
 		Wait(1000)
 	end
 	MySQL.Async.execute("INSERT INTO ea_bans (`banid`, `expire`, `identifiers`, `reason`) VALUES (NULL, @expire, @identifiers, @reason);", {expire = data.expire, identifiers = json.encode(data.identifiers), reason = data.reason }, function() end)
-	print("added new ban")
+	Citizen.Trace("added new ban")
 end)
 
 AddEventHandler('ea_data:removeBan', function(data)
@@ -85,7 +85,7 @@ AddEventHandler('ea_data:removeBan', function(data)
 			for d, dataidentifier in ipairs(data.identifiers) do
 				if dataidentifier == identifier then
 					MySQL.Async.execute("DELETE FROM ea_bans WHERE banid = @banid;", {banid = theBan.banid }, function() end)
-					print("deleted ban")
+					Citizen.Trace("deleted ban")
 					break
 				end
 			end
