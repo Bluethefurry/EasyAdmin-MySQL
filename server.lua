@@ -90,7 +90,7 @@ Citizen.CreateThread(function()
 	end
 	
 	function checkVersionHTTPRequest()
-		PerformHttpRequest("https://raw.githubusercontent.com/"..updatePath.."/master/version.json", checkVersion, "GET")
+		PerformHttpRequest("https://raw.githubusercontent.com/Bluethefurry/EasyAdmin-MySQL/master/version.json", checkVersion, "GET")
 	end
 
 	checkVersionHTTPRequest()
