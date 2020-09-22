@@ -67,7 +67,7 @@ Citizen.CreateThread(function()
 	local verFile = LoadResourceFile(GetCurrentResourceName(), "version.json")
 	local verContent = json.decode(verFile)
 	local curVersion = verContent.version
-	local updatePath = "/Bluethefurry/EasyAdmin-MySQL"
+	local updatePath = "/Blumlaut/EasyAdmin-MySQL"
 	local resourceName = "EasyAdmin-MySQL ("..GetCurrentResourceName()..")"
 	function checkVersion(err,response, headers)
 		if err == 200 then
@@ -90,7 +90,7 @@ Citizen.CreateThread(function()
 	end
 	
 	function checkVersionHTTPRequest()
-		PerformHttpRequest("https://raw.githubusercontent.com/Bluethefurry/EasyAdmin-MySQL/master/version.json", checkVersion, "GET")
+		PerformHttpRequest("https://raw.githubusercontent.com/Blumlaut/EasyAdmin-MySQL/master/version.json", checkVersion, "GET")
 	end
 
 	checkVersionHTTPRequest()
